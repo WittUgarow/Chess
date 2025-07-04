@@ -1,0 +1,48 @@
+#gameboard{
+    width: 320px;
+    height: 320px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.square{
+    width: 40px;
+    height: 40px;
+    position: relative;
+}
+
+.square svg{
+    height: 30px;
+    width: 30px;
+    margin: 5px;
+    stroke: black;
+    stroke-width: 10;
+    position: relative;
+    z-index: -10;
+}
+
+path {
+    position: relative;
+    z-index: -11;
+}
+
+.piece {
+    position: relative;
+    z-index: 9;
+}
+
+.beige{
+    background-color: #f0d9b5;
+}
+
+.brown{
+    background-color: #b58863;
+}
+
+.black{
+    fill: black;
+}
+
+.white{
+    fill: white;
+}
