@@ -44,51 +44,21 @@ createBoard()
 
 
 const allSquares = document.querySelectorAll("#gameboard .square")
-console.log(allSquares[0])
 allSquares.forEach(square => {
     square.addEventListener('dragstart', dragStart)
     square.addEventListener('dragover', dragOver)
     square.addEventListener('drop', dragDrop)
 })
 
-
+//Asign Each Tile A Row And Col For Easier Movement
 function assignRowCol(){
     allSquares.forEach(square =>{
-        let row
         const squareId = square.getAttribute("square-id")
-        if(squareId>=56){
-            row = 8
-        }
-        else if(squareId>=48){
-            row=7
-        }
-        else if(squareId>=40){
-            row=6
-        }
-        else if(squareId>=32){
-            row=5
-        }
-        else if(squareId>=24){
-            row=4
-        }
-        else if(squareId>=16){
-            row=3
-        }
-        else if(squareId>=8){
-            row = 2
-        }
-        else{
-            row = 1
-        }
+        let row = Math.floor(squareId/8)+1
+        let col = squareId % 8 + 1
         square.setAttribute("row", row)
+        square.setAttribute("col", col)
     })
-
-    /*
-    const row = Math.floor((63-i) / 8) + 1
-    const col = 
-    square.setAttribute('row', row)
-    square.setAttribute('col', col)
-    */
 }
 assignRowCol()
 
@@ -134,78 +104,83 @@ function dragDrop(e){
 
 
 //Valid Path Functions
-function moveSameRow(startId, endId){
-    const isValid = Math.abs(endId-startId)<8 || Math.abs(endId-startId)%8==0
-    return isValid;
+function moveSameRow(){
+   return startTile.getAttribute('row') ==  targetTile.getAttribute('row')
 }
 
-function clearPath(startId, endId){
-
+function moveSameCol(){
+    return startTile.getAttribute('col') ==  targetTile.getAttribute('col')
 }
 
-function rowClear(startId, endId){
-    let rowStart = startId
-    while(rowStart>8){
-        rowStart-=8
-    }
-    for(let i = rowStart; i<=endId; i+=8){
-        if(!tileClear(i)){
-            console.log(false)
-            return false;
-        }
-    }
-    if(startId>endId){
-        for(let i = startId; i>endId; i--){
-            if(!tileClear(i)){
-                console.log(false)
-                return false
-            }
-        }
-    }
-    else{
-        for(let i = startId; i<endId; i++){
-            if(!tileClear(i)){
-                console.log(false)
-                return false
-            }
-        }
-    }
-    console.log(true)
-    return true;
+function moveIsDiagonal(){
+    
+    const valid = Math.abs(startTile.getAttribute('col')-targetTile.getAttribute('col')) == Math.abs(startTile.getAttribute('row')-targetTile.getAttribute('row'))
+    console.log(valid)
+    return valid
+}
+
+function rowClear(){
+    return true
+}
+
+function colClear(){
+    return true
+}
+
+function diagonalClear(){
+    return true
 }
 
 //Check If Title Number Has A Piece
-function tileClear(tile){
-    return !document.querySelector(`[square-id="${tile}"]`).firstChild
+function tileClear(id){
+    return !document.querySelector(`[square-id="${id}"]`).firstChild
 }
+
+let startTile
+let startId
+
+let targetTile
+let targetId
+
 
 //Take The Move
 function checkIfValid(target){
     
-    const targetId = Number(target.getAttribute('square-id')) || Number(target.parentNode.getAttribute('square-id'))
-    const startId = Number(startPositionId)
+    targetId = Number(target.getAttribute('square-id')) || Number(target.parentNode.getAttribute('square-id'))
+    targetTile = document.querySelector(`[square-id="${targetId}"]`)
+    startId = Number(startPositionId)
+    startTile = document.querySelector(`[square-id="${startId}"]`)
+    
     const piece = draggedElement.id
-    /*
-    console.log("targetId", targetId)
-    console.log("startId", startId)
-    console.log("piece", piece)
-    */
 
     switch(piece){
         case 'pawn':
-            const startRow = [8,9,10,11,12,13,14,15]
-            if(
-                (startRow.includes(startId) && targetId-startId==16 && !document.querySelector(`[square-id="${targetId}"]`).firstChild) ||
-                (targetId-startId==8 && !document.querySelector(`[square-id="${targetId}"]`).firstChild) ||
-                ((targetId-startId==7 || targetId-startId==9) && document.querySelector(`[square-id="${targetId}"]`).firstChild
-)
-                ) {
-                return true
+            if(targetTile.getAttribute('col')!=startTile.getAttribute('col')){
+                return !tileClear(targetId) && (targetTile.getAttribute('row')-startTile.getAttribute('row')==1) && (Math.abs(targetTile.getAttribute('col')-startTile.getAttribute('col'))==1)
             }
+            const normalMove = targetTile.getAttribute('row')-startTile.getAttribute('row')==1 && tileClear(targetId)
+            const startMove = (startTile.getAttribute('row')==2) && tileClear(startTile.getAttribute('row')+1) && tileClear(startId+8)
+            return (normalMove || startMove)
             break;
         case 'rook':
-            return moveSameRow(startId, targetId) && rowClear(startId, targetId)
-        break;
+            return (moveSameRow() && rowClear()) || (moveSameCol() && colClear())
+            break;
+        case 'bishop':
+            return (moveIsDiagonal() && diagonalClear())
+            break;
+        case 'queen':
+            return (moveSameRow() && rowClear()) || (moveSameCol() && colClear()) || (moveIsDiagonal() && diagonalClear())
+            break;
+        case 'knight':
+            let colDifKnight = Math.abs(targetTile.getAttribute('col')-startTile.getAttribute('col'))
+            let rowDifKnight = Math.abs(targetTile.getAttribute('row')-startTile.getAttribute('row'))
+            return (colDifKnight==2 && rowDifKnight==1) || (colDifKnight==1 && rowDifKnight==2)
+            break;
+        case 'king':
+            let colDifKing = Math.abs(targetTile.getAttribute('col')-startTile.getAttribute('col'))
+            const rowDifKing = Math.abs(targetTile.getAttribute('row')-startTile.getAttribute('row'))
+            return (colDifKing<=1 && rowDifKing<=1)
+            break;
     }
 
 
